@@ -26,7 +26,7 @@
     "url": "https://github.com/aronwk-aaron/cypress-testrail-reporter/issues"
   },
   "scripts": {
-    "tsc": "tsc",
+    "prepare": "npm run tsc",
     "clean": "rimraf dist",
     "build": "npm run clean && npm run tsc"
   },

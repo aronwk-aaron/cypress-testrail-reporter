@@ -4,9 +4,9 @@ import { TestRail } from './testrail';
 import { titleToCaseIds } from './shared';
 import { Status, TestRailResult } from './testrail.interface';
 import { TestRailValidation } from './testrail.validation';
-const TestRailCache = require('./testrail.cache');
-const TestRailLogger = require('./testrail.logger');
-const chalk = require('chalk');
+import { TestRailLogger } from './testrail.logger';
+import { TestRailCache } from './testrail.cache';
+import chalk from 'chalk';
 var runCounter = 1;
 
 export class CypressTestRailReporter extends reporters.Spec {

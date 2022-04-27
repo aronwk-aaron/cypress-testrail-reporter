@@ -25,7 +25,7 @@ var load = () => {
     }
 };
 
-const TestRailCache = {
+export const TestRailCache = {
     store: (key, val) => {
         cacheData[key] = val;
         persist();
@@ -43,5 +43,3 @@ const TestRailCache = {
         cacheData = {};
     }
 };
-
-module.exports = TestRailCache;

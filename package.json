@@ -14,7 +14,9 @@
     "email": "mickosavovic@gmail.com"
   },
   "license": "MIT",
-  "files": ["dist/**/*"],
+  "files": [
+    "dist/**/*"
+  ],
   "readmeFilename": "README.md",
   "repository": {
     "type": "git",

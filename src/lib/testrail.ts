@@ -1,10 +1,10 @@
-const axios = require('axios');
-const deasync = require('deasync');
-const fs = require('fs');
-const path = require('path');
-const FormData = require('form-data');
-const TestRailLogger = require('./testrail.logger');
-const TestRailCache = require('./testrail.cache');
+import axios from 'axios';
+import deasync = require('deasync');
+import fs = require('fs');
+import path = require('path');
+import FormData = require('form-data');
+import { TestRailLogger } from './testrail.logger';
+import { TestRailCache } from './testrail.cache';
 import { TestRailOptions, TestRailResult } from './testrail.interface';
 
 export class TestRail {

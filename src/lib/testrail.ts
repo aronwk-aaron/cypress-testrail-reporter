@@ -65,6 +65,26 @@ export class TestRail {
       .catch(error => console.error(error))
     )
   }
+  
+  public getSuite (caseId: number) {
+    let url = `${this.base}/get_case/${caseId}`
+
+    return this.makeSync(
+      axios({
+        method:'get',
+        url: url,
+        headers: { 'Content-Type': 'application/json' }, 
+        auth: {
+            username: this.options.username,
+            password: this.options.password
+        } 
+      })
+      .then(response => {
+        return response.data.suite_id
+      })
+      .catch(error => console.error(error))
+    )
+  }
 
   public createRun (name: string, description: string, suiteId: number) {
     if (this.options.includeAllInTestRun === false){

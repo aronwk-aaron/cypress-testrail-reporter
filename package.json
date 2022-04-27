@@ -26,10 +26,9 @@
     "url": "https://github.com/aronwk-aaron/cypress-testrail-reporter/issues"
   },
   "scripts": {
-    "prepare": "npm run tsc",
-    "tsc": "tsc",
+    "prepare": "tsc",
     "clean": "rimraf dist",
-    "build": "npm run clean && npm run tsc"
+    "build": "npm run clean && tsc"
   },
   "dependencies": {
     "axios": "^0.21.4",

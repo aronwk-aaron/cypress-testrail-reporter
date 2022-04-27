@@ -38,7 +38,16 @@ export class CypressTestRailReporter extends reporters.Spec {
     if (process.env.CYPRESS_TESTRAIL_REPORTER_GROUPID) {
       this.reporterOptions.groupId = process.env.CYPRESS_TESTRAIL_REPORTER_GROUPID;
     }
-
+    
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_PLANID) {
+      this.reporterOptions.planId = process.env.CYPRESS_TESTRAIL_REPORTER_PLANID;
+    }
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_CONFIG) {
+      this.reporterOptions.config = process.env.CYPRESS_TESTRAIL_REPORTER_CONFIG;
+    }
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE) {
+      this.reporterOptions.closeRun = process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE;
+    }
     this.testRailApi = new TestRail(this.reporterOptions);
     this.testRailValidation = new TestRailValidation(this.reporterOptions);
 

@@ -28,7 +28,7 @@ export class TestRailValidation {
   }
     
   /**
-   * This function will validate do we pass suiteId as a CLI agrument as a part of command line execution 
+   * This function will validate do we pass suiteId as a CLI argument as a part of command line execution 
    * Example: 
    * CYPRESS_ENV="testRailSuiteId=1"
    * npx cypress run --env="${CYPRESS_ENV}"

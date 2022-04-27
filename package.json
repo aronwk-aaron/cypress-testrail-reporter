@@ -27,6 +27,7 @@
   },
   "scripts": {
     "prepare": "npm run tsc",
+    "tsc": "tsc",
     "clean": "rimraf dist",
     "build": "npm run clean && npm run tsc"
   },

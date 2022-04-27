@@ -3,7 +3,9 @@ export interface TestRailOptions {
   username: string;
   password: string;
   projectId: number;
-  suiteId: number;
+  suiteId?: number;
+  planId?: number;
+  config?: string;
   assignedToId?: number;
   includeAllInTestRun?: boolean;
   groupId?: number;

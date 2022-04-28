@@ -86,6 +86,26 @@ export class TestRail {
     )
   }
 
+  public getPlan (planId: number) {
+    let url = `${this.base}/get_plan/${planId}`
+
+    return this.makeSync(
+      axios({
+        method:'get',
+        url: url,
+        headers: { 'Content-Type': 'application/json' }, 
+        auth: {
+            username: this.options.username,
+            password: this.options.password
+        } 
+      })
+      .then(response => {
+        return response.data.entries
+      })
+      .catch(error => console.error(error))
+    )
+  }
+
   public createRun (name: string, description: string, suiteId: number) {
     if (this.options.includeAllInTestRun === false){
       this.includeAll = false;

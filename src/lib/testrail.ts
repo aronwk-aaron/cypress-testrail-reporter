@@ -152,6 +152,25 @@ export class TestRail {
     )
   }
 
+  public publishResult(result: TestRailResult, runId: number) {
+    let results: TestRailResult[] = [result]
+    return this.makeSync(
+      axios({
+        method: 'post',
+        url: `${this.base}/add_results_for_cases/${runId}`,
+        headers: { 'Content-Type': 'application/json' },
+        auth: {
+          username: this.options.username,
+          password: this.options.password,
+        },
+        data: JSON.stringify({ results }),
+      })
+      .then(response => response.data)
+      .catch(error => { 
+        console.error(error); 
+      })
+    )
+  }
   public publishResults(results: TestRailResult[]) {
     this.runId = TestRailCache.retrieve('runId');
     return this.makeSync(

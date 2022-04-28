@@ -173,6 +173,20 @@ export class CypressTestRailReporter extends reporters.Spec {
     }
   }
 
+  public getRunFromPlan (suiteId: number, runConfig: string) {
+    let entries: any
+    for(entries in this.plan) {
+      if(entries.suite_id == suiteId) {
+        let testRun: any
+        for(testRun in entries.runs) {
+          if(testRun.config.toLowerCase().includes(runConfig.toLowerCase())) {
+            return testRun.id
+          }
+        }
+      }
+    }
+  }
+
   /**
    * Ensure that after each test results are reported continuously
    * Additionally to that if test status is failed or retried there is possibility 
@@ -182,13 +196,14 @@ export class CypressTestRailReporter extends reporters.Spec {
   public submitResults (status, test, comment) {
     TestRailLogger.log(JSON.stringify(test._testConfig, null, 4))
     let caseIds = titleToCaseIds(test.title)
-    const invalidCaseIds = caseIds.filter(caseId => !this.serverTestCaseIds.includes(caseId));
-    caseIds = caseIds.filter(caseId => this.serverTestCaseIds.includes(caseId))
-    if (invalidCaseIds.length > 0)
-      TestRailLogger.log(`The following test IDs were found in Cypress tests, but not found in Testrail: ${invalidCaseIds}`)
-
+    if (!this.plan) {
+      const invalidCaseIds = caseIds.filter(caseId => !this.serverTestCaseIds.includes(caseId));
+      caseIds = caseIds.filter(caseId => this.serverTestCaseIds.includes(caseId))
+      if (invalidCaseIds.length > 0)
+        TestRailLogger.log(`The following test IDs were found in Cypress tests, but not found in Testrail: ${invalidCaseIds}`)
+    }
     if (caseIds.length) {
-      const caseResults = caseIds.map(caseId => {
+      const caseResults: TestRailResult[] = caseIds.map(caseId => {
         return {
           case_id: caseId,
           status_id: status,
@@ -196,15 +211,26 @@ export class CypressTestRailReporter extends reporters.Spec {
         };
       });
       this.results.push(...caseResults);
-      const publishedResults = this.testRailApi.publishResults(caseResults)
-      if (
-        publishedResults !== undefined &&
-        this.reporterOptions.allowFailedScreenshotUpload === true &&
-        (status === Status.Failed || status === Status.Retest)
-      ) {
-        publishedResults.forEach((result) => {
-          this.testRailApi.uploadScreenshots(caseIds[0], result.id);
-        })
+      let publishedResults: any
+      if(this.plan){
+        let eachCase: any
+        for(eachCase in caseResults){
+          let suiteId = this.testRailApi.getSuite(eachCase.case_id)
+          let runId = this.getRunFromPlan(suiteId, this.reporterOptions.runConfig)
+          publishedResults = this.testRailApi.publishResult(eachCase, runId)
+        }
+        
+      }else{
+        publishedResults = this.testRailApi.publishResults(caseResults)
+        if (
+          publishedResults !== undefined &&
+          this.reporterOptions.allowFailedScreenshotUpload === true &&
+          (status === Status.Failed || status === Status.Retest)
+        ) {
+          publishedResults.forEach((result) => {
+            this.testRailApi.uploadScreenshots(caseIds[0], result.id);
+          })
+        }
       }
     }
   }

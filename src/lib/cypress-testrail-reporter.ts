@@ -84,7 +84,7 @@ export class CypressTestRailReporter extends reporters.Spec {
         
         if (this.reporterOptions.planId && !TestRailCache.retrieve('plan')) {
           this.suiteId = undefined;
-          TestRailLogger.log(`Following suiteId has been set in cypress.json file: ${this.reporterOptions.planId}`);
+          TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
           this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
           TestRailCache.store('plan', this.plan);
@@ -158,17 +158,18 @@ export class CypressTestRailReporter extends reporters.Spec {
 
   public getRunFromPlan (suiteId: number, runConfig: string): any {
     TestRailLogger.log(JSON.stringify(runConfig, null, 4))
+    let caseRunId: number
     this.plan.entries.forEach( entry=> {
       if(entry.suite_id == suiteId) {
         entry.runs.forEach(testRun => {
           TestRailLogger.log(JSON.stringify(testRun, null, 4))
           if(testRun.config.toLowerCase().includes(runConfig.toLowerCase())) {
-            let caseRunId: number = testRun.id;
-            return caseRunId;
+            caseRunId = testRun.id;
           }
         });
       }
     });
+    return caseRunId;
   }
 
   /**

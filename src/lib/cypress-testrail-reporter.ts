@@ -83,7 +83,7 @@ export class CypressTestRailReporter extends reporters.Spec {
       runner.on('start', () => {
         
         if (this.reporterOptions.planId && !TestRailCache.retrieve('plan')) {
-          this.suiteId = undefined;
+          this.suiteId = false;
           TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
           this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)

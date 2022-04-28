@@ -163,6 +163,7 @@ export class CypressTestRailReporter extends reporters.Spec {
    * Note: Uploading of screenshot is configurable option
    */
   public submitResults (status, test, comment) {
+    TestRailLogger.log(test)
     let caseIds = titleToCaseIds(test.title)
     const invalidCaseIds = caseIds.filter(caseId => !this.serverTestCaseIds.includes(caseId));
     caseIds = caseIds.filter(caseId => this.serverTestCaseIds.includes(caseId))

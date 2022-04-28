@@ -156,18 +156,16 @@ export class CypressTestRailReporter extends reporters.Spec {
 
   public getRunFromPlan (suiteId: number, runConfig: string) {
     TestRailLogger.log(JSON.stringify(runConfig, null, 4))
-    let entries: any
-    for(entries in this.plan) {
-      if(entries.suite_id == suiteId) {
-        let testRun: any
-        for(testRun in entries.runs) {
+    this.plan.entries.forEach( entry=> {
+      if(entry.suite_id == suiteId) {
+        entry.runs.forEach(testRun => {
           TestRailLogger.log(JSON.stringify(testRun, null, 4))
           if(testRun.config.toLowerCase().includes(runConfig.toLowerCase())) {
             return testRun.id
           }
-        }
+        });
       }
-    }
+    });
   }
 
   /**
@@ -197,15 +195,14 @@ export class CypressTestRailReporter extends reporters.Spec {
       this.results.push(...caseResults);
       let publishedResults: any
       if(this.plan){
-        let eachCase: any
-        for(eachCase in caseResults){
+        caseResults.forEach((eachCase) => {
           TestRailLogger.log(JSON.stringify(eachCase, null, 4))
           let suiteId = this.testRailApi.getSuite(eachCase.case_id)
           TestRailLogger.log(JSON.stringify(suiteId, null, 4))
           let runId = this.getRunFromPlan(suiteId, this.reporterOptions.runConfig)
           TestRailLogger.log(JSON.stringify(runId, null, 4))
           publishedResults = this.testRailApi.publishResult(eachCase, runId)
-        }
+        });
         
       }else{
         publishedResults = this.testRailApi.publishResults(caseResults)

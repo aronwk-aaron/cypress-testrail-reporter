@@ -191,13 +191,17 @@ export class CypressTestRailReporter extends reporters.Spec {
           comment: comment,
         };
       });
+      TestRailLogger.log(JSON.stringify(caseResults, null, 4))
       this.results.push(...caseResults);
       let publishedResults: any
       if(this.plan){
         let eachCase: any
         for(eachCase in caseResults){
+          TestRailLogger.log(JSON.stringify(eachCase, null, 4))
           let suiteId = this.testRailApi.getSuite(eachCase.case_id)
+          TestRailLogger.log(JSON.stringify(suiteId, null, 4))
           let runId = this.getRunFromPlan(suiteId, this.reporterOptions.runConfig)
+          TestRailLogger.log(JSON.stringify(runId, null, 4))
           publishedResults = this.testRailApi.publishResult(eachCase, runId)
         }
         

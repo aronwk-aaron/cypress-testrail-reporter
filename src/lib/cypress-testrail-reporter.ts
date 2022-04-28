@@ -48,10 +48,13 @@ export class CypressTestRailReporter extends reporters.Spec {
       this.reporterOptions.closeRun = process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE;
     }
 
+    if (process.env.runConfig) {
+      this.reporterOptions.runConfig = process.env.runConfig;
+    }
+
     this.testRailApi = new TestRail(this.reporterOptions);
     this.testRailValidation = new TestRailValidation(this.reporterOptions);
-    // just whatever browser we are on, will always be there
-    this.reporterOptions.config = process.env.browser;
+
 
     /**
      * This will validate reporter options defined in cypress.json file

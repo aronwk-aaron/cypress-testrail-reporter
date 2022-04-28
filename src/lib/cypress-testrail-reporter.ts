@@ -155,11 +155,13 @@ export class CypressTestRailReporter extends reporters.Spec {
   }
 
   public getRunFromPlan (suiteId: number, runConfig: string) {
+    TestRailLogger.log(JSON.stringify(runConfig, null, 4))
     let entries: any
     for(entries in this.plan) {
       if(entries.suite_id == suiteId) {
         let testRun: any
         for(testRun in entries.runs) {
+          TestRailLogger.log(JSON.stringify(testRun, null, 4))
           if(testRun.config.toLowerCase().includes(runConfig.toLowerCase())) {
             return testRun.id
           }

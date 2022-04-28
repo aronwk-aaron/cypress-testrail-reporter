@@ -47,11 +47,7 @@ export class CypressTestRailReporter extends reporters.Spec {
     if (process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE) {
       this.reporterOptions.closeRun = process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE;
     }
-
-    if (process.env.runConfig) {
-      this.reporterOptions.runConfig = process.env.runConfig;
-    }
-
+    
     this.testRailApi = new TestRail(this.reporterOptions);
     this.testRailValidation = new TestRailValidation(this.reporterOptions);
 
@@ -146,6 +142,7 @@ export class CypressTestRailReporter extends reporters.Spec {
         /**
          * Notify about the results at the end of execution
          */
+        TestRailCache.purge();
         if (this.results.length == 0) {
           TestRailLogger.warn('No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
         } else {
@@ -156,13 +153,12 @@ export class CypressTestRailReporter extends reporters.Spec {
     }
   }
 
-  public getRunFromPlan (suiteId: number, runConfig: string): any {
-    TestRailLogger.log(JSON.stringify(runConfig, null, 4))
+  public getRunFromPlan (suiteId: number): any {
     this.plan.forEach( entry=> {
       if(entry.suite_id == suiteId) {
         entry.runs.forEach(testRun => {
           TestRailLogger.log(JSON.stringify(testRun, null, 4))
-          if(testRun.config.toLowerCase().includes(runConfig.toLowerCase())) {
+          if(testRun.config.toLowerCase().includes(process.env.runConfig.toLowerCase())) {
             let caseRunId: number = testRun.id;
             return caseRunId;
           }
@@ -202,7 +198,7 @@ export class CypressTestRailReporter extends reporters.Spec {
           TestRailLogger.log(JSON.stringify(eachCase, null, 4))
           let suiteId = this.testRailApi.getSuite(eachCase.case_id)
           TestRailLogger.log(JSON.stringify(suiteId, null, 4))
-          let caseRunId: number = this.getRunFromPlan(suiteId, this.reporterOptions.runConfig)
+          let caseRunId: number = this.getRunFromPlan(suiteId)
           TestRailLogger.log(JSON.stringify(caseRunId, null, 4))
           publishedResults = this.testRailApi.publishResult(eachCase, caseRunId)
         });

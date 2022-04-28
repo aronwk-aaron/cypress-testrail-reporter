@@ -76,7 +76,7 @@ export class CypressTestRailReporter extends reporters.Spec {
      * If no suiteId has been passed with previous two methods
      * runner will not be triggered
      */
-    if (this.suiteId && this.suiteId.toString().length) {
+    if (this.suiteId && this.suiteId.toString().length || this.reporterOptions.planId && this.reporterOptions.planId.toString().length) {
       runner.on('start', () => {
         
         if (this.reporterOptions.planId && !TestRailCache.retrieve('plan')) {

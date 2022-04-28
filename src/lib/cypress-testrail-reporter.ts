@@ -14,6 +14,7 @@ export class CypressTestRailReporter extends reporters.Spec {
   private testRailApi: TestRail;
   private testRailValidation: TestRailValidation;
   private runId: number;
+  private plan: any;
   private reporterOptions: any;
   private suiteId: any = [];
   private serverTestCaseIds: any = [];
@@ -42,14 +43,15 @@ export class CypressTestRailReporter extends reporters.Spec {
     if (process.env.CYPRESS_TESTRAIL_REPORTER_PLANID) {
       this.reporterOptions.planId = process.env.CYPRESS_TESTRAIL_REPORTER_PLANID;
     }
-    if (process.env.CYPRESS_TESTRAIL_REPORTER_CONFIG) {
-      this.reporterOptions.config = process.env.CYPRESS_TESTRAIL_REPORTER_CONFIG;
-    }
+
     if (process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE) {
       this.reporterOptions.closeRun = process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE;
     }
+
     this.testRailApi = new TestRail(this.reporterOptions);
     this.testRailValidation = new TestRailValidation(this.reporterOptions);
+    // just whatever browser we are on, will always be there
+    this.reporterOptions.config = process.env.browser;
 
     /**
      * This will validate reporter options defined in cypress.json file
@@ -76,38 +78,50 @@ export class CypressTestRailReporter extends reporters.Spec {
      */
     if (this.suiteId && this.suiteId.toString().length) {
       runner.on('start', () => {
-        this.serverTestCaseIds = this.testRailApi.getCases(this.suiteId);
-        /**
-        * runCounter is used to count how many spec files we have during one run
-        * in order to wait for close test run function
-        */
-        TestRailCache.store('runCounter', runCounter);
-        /**
-        * creates a new TestRail Run
-        * unless a cached value already exists for an existing TestRail Run in
-        * which case that will be used and no new one created.
-        */
-        if (!TestRailCache.retrieve('runId')) {
-            if (this.reporterOptions.suiteId) {
-              TestRailLogger.log(`Following suiteId has been set in cypress.json file: ${this.suiteId}`);
-            }
-            const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-            const name = `${this.reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
-            if (this.reporterOptions.disableDescription) {
-              var description = '';
-            } else {
-              if (process.env.CYPRESS_CI_JOB_URL) {
-                var description = process.env.CYPRESS_CI_JOB_URL;
-              } else {
-                var description = 'For the Cypress run visit https://dashboard.cypress.io/#/projects/runs';
+        
+        if (this.reporterOptions.planId && !TestRailCache.retrieve('plan')) {
+
+          this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
+          TestRailCache.store('plan', this.plan);
+
+        } else if (this.suiteId) {
+          this.serverTestCaseIds = this.testRailApi.getCases(this.suiteId);
+          /**
+          * runCounter is used to count how many spec files we have during one run
+          * in order to wait for close test run function
+          */
+          TestRailCache.store('runCounter', runCounter);
+          if (!TestRailCache.retrieve('runId')) {
+            /**
+            * creates a new TestRail Run
+            * unless a cached value already exists for an existing TestRail Run in
+            * which case that will be used and no new one created.
+            */
+              if (this.reporterOptions.suiteId) {
+                TestRailLogger.log(`Following suiteId has been set in cypress.json file: ${this.suiteId}`);
               }
-            }
-            TestRailLogger.log(`Creating TestRail Run with name: ${name}`);
-            this.testRailApi.createRun(name, description, this.suiteId);
+              const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
+              const name = `${this.reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
+              if (this.reporterOptions.disableDescription) {
+                var description = '';
+              } else {
+                if (process.env.CYPRESS_CI_JOB_URL) {
+                  var description = process.env.CYPRESS_CI_JOB_URL;
+                } else {
+                  var description = 'For the Cypress run visit https://dashboard.cypress.io/#/projects/runs';
+                }
+              }
+              TestRailLogger.log(`Creating TestRail Run with name: ${name}`);
+              this.testRailApi.createRun(name, description, this.suiteId);
+          } else {
+              // use the cached TestRail Run ID
+              this.runId = TestRailCache.retrieve('runId');
+              TestRailLogger.log(`Using existing TestRail Run with ID: '${this.runId}'`);
+          }
         } else {
-            // use the cached TestRail Run ID
-            this.runId = TestRailCache.retrieve('runId');
-            TestRailLogger.log(`Using existing TestRail Run with ID: '${this.runId}'`);
+          // use the cached TestRail Run ID
+          this.plan = TestRailCache.retrieve('plan');
+          TestRailLogger.log(`Using existing TestRail Plan with ID: '${this.plan.id}'`);   
         }
       });
 

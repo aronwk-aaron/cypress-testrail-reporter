@@ -142,32 +142,13 @@ export class CypressTestRailReporter extends reporters.Spec {
 
       runner.on('end', () => {
         /**
-         * When we reach final number of spec files 
-         * we should close test run at the end
-         */
-        var numSpecFiles = this.testRailValidation.countTestSpecFiles();
-        var counter = TestRailCache.retrieve('runCounter');
-        // load runId before purging testrail-cache.txt
-        this.runId = TestRailCache.retrieve('runId');
-
-        if (numSpecFiles.length > counter) {
-          runCounter++
-        } else {
-          this.testRailApi.closeRun();
-          /**
-           * Remove testrail-cache.txt file at the end of execution
-           */
-          TestRailCache.purge();
-        }
-
-        /**
          * Notify about the results at the end of execution
          */
         if (this.results.length == 0) {
           TestRailLogger.warn('No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
         } else {
-          var path = `runs/view/${this.runId}`;
-          TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
+          // var path = `runs/view/${this.runId}`;
+          // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
         }
       });
     }

@@ -93,17 +93,9 @@ export class CypressTestRailReporter extends reporters.Spec {
 
           if( !this.plan || (this.plan && !this.plan.length) ){
             TestRailLogger.log(`Making the api call to get the plan...`);
-            let start = new Date()
-            TestRailLogger.log(`Start time: ${start.toLocaleString()}`)
-            
             this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
-            
-            let end = new Date()
-            TestRailLogger.log(`End time: ${end.toLocaleString()}`)
-            let totaltime = end.getMilliseconds() - start.getMilliseconds()
-            TestRailLogger.log(`Total time in milliseconds: ${totaltime}`)
           }
-          TestRailLogger.log(`There are this many suites in the Plan: ${this.plan.length}`);
+          TestRailLogger.log(`Number of suites in the plan: ${this.plan.length}`);
 
         } else if (this.suiteId && this.suiteId.toString().length) {
           this.serverTestCaseIds = this.testRailApi.getCases(this.suiteId);

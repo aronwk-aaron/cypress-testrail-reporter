@@ -92,7 +92,7 @@ export class CypressTestRailReporter extends reporters.Spec {
           TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
           this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
-          TestRailLogger.log(`There are this many suites in the Plan: ${this.plan.count()}`);
+          TestRailLogger.log(`There are this many suites in the Plan: ${this.plan.length}`);
 
         } else if (this.suiteId && this.suiteId.toString().length) {
           this.serverTestCaseIds = this.testRailApi.getCases(this.suiteId);

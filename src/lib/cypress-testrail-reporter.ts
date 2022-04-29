@@ -123,7 +123,7 @@ export class CypressTestRailReporter extends reporters.Spec {
         } else {
           // use the cached TestRail Run ID
           this.plan = TestRailCache.retrieve('plan');
-          TestRailLogger.log(`Using existing TestRail Plan with ID: '${this.plan.id}'`);   
+          TestRailLogger.log(`Using existing TestRail Plan with ID: '${this.reporterOptions.planI}'`);   
         }
       });
 

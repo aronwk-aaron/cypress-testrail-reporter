@@ -38,7 +38,8 @@ export class TestRailValidation {
     let resCliArgs: any = {};
     const cliArgs = process.argv.slice(2);
     // Search array for a specific string and store into variable
-    var index, value, result;
+    var index;
+    let result:  any = [];
     for (index = 0; index < cliArgs.length; ++index) {
       result.push(cliArgs[index]);
     }

@@ -88,13 +88,13 @@ export class CypressTestRailReporter extends reporters.Spec {
       runner.on('start', () => {
         
         if (this.reporterOptions.planId) {
-          this.suiteId = undefined;
+          this.suiteId = false;
           TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
           this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
-          TestRailCache.store('plan', this.plan);
+          TestRailLogger.log(`There are this many suites in the Plan: ${this.plan.count()}`);
 
-        } else if (this.suiteId) {
+        } else if (this.suiteId && this.suiteId.toString().length) {
           this.serverTestCaseIds = this.testRailApi.getCases(this.suiteId);
           /**
           * runCounter is used to count how many spec files we have during one run
@@ -130,7 +130,6 @@ export class CypressTestRailReporter extends reporters.Spec {
           }
         } else {
           // use the cached TestRail Run ID
-          this.plan = TestRailCache.retrieve('plan');
           TestRailLogger.log(`Using existing TestRail Plan with ID: '${this.reporterOptions.planI}'`);   
         }
       });

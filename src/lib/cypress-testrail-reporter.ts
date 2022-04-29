@@ -91,7 +91,7 @@ export class CypressTestRailReporter extends reporters.Spec {
           this.suiteId = false;
           TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
-          if(!this.plan.length){
+          if('length' in this.plan && !this.plan.length){
             TestRailLogger.log(`Making the api call to get the plan...`);
             this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
           }

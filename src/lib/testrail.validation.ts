@@ -34,6 +34,7 @@ export class TestRailValidation {
    * npx cypress run --env="${CYPRESS_ENV}"
    */
   public parseCLIArguments () {
+    return;
     // Read and store cli arguments into array
     let resCliArgs: any = {};
     const cliArgs = process.argv.slice(2);

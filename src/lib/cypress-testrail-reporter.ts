@@ -48,6 +48,14 @@ export class CypressTestRailReporter extends reporters.Spec {
     if (process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE) {
       this.reporterOptions.closeRun = process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE;
     }
+
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_RUNCONFIG) {
+      this.reporterOptions.runConfig = process.env.CYPRESS_TESTRAIL_REPORTER_RUNCONFIG;
+    }
+
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_SUITEID) {
+      this.suiteId = process.env.CYPRESS_TESTRAIL_REPORTER_SUITEID;
+    }
     
     this.testRailApi = new TestRail(this.reporterOptions);
     this.testRailValidation = new TestRailValidation(this.reporterOptions);
@@ -67,19 +75,19 @@ export class CypressTestRailReporter extends reporters.Spec {
      * if we are passing suiteId as a part of runtime env variables we assign that value to variable
      * usually we use this way for multi suite projects
      */
-    this.cliArguments = this.testRailValidation.parseCLIArguments();
-    if (this.cliArguments.testRailSuiteId && this.cliArguments.length) {
-      this.suiteId = this.cliArguments.testRailSuiteId
-    }
+    // this.cliArguments = this.testRailValidation.parseCLIArguments();
+    // if (this.cliArguments.testRailSuiteId && this.cliArguments.length) {
+    //   this.suiteId = this.cliArguments.testRailSuiteId
+    // }
 
     /**
-     * If no suiteId has been passed with previous two methods
+     * If no suiteId or runId has been passed with previous two methods
      * runner will not be triggered
      */
     if ((this.suiteId && this.suiteId.toString().length) || (this.reporterOptions.planId && this.reporterOptions.planId.toString().length)) {
       runner.on('start', () => {
         
-        if (this.reporterOptions.planId && !TestRailCache.retrieve('plan')) {
+        if (this.reporterOptions.planId) {
           this.suiteId = undefined;
           TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
@@ -156,14 +164,17 @@ export class CypressTestRailReporter extends reporters.Spec {
 
   public getRunFromPlan (suiteId: number): any {
     let caseRunId: number
-    this.plan.entries.forEach( entry=> {
+    this.plan.forEach( entry=> {
       if(entry.suite_id == suiteId) {
         entry.runs.forEach(testRun => {
-          TestRailLogger.log(JSON.stringify(testRun, null, 4))
-          if(testRun.config.toLowerCase().includes(this.cliArguments.runConfig.toLowerCase())) {
+          if(testRun.config.toLowerCase().includes(this.reporterOptions.runConfig.toLowerCase())) {
             caseRunId = testRun.id;
+            return;
           }
         });
+      }
+      if(caseRunId){
+        return;
       }
     });
     return caseRunId;

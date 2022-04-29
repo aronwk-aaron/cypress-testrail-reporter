@@ -18,6 +18,7 @@ export class CypressTestRailReporter extends reporters.Spec {
   private reporterOptions: any;
   private suiteId: any = [];
   private serverTestCaseIds: any = [];
+  private cliArguments: any;
 
   constructor(runner: any, options: any) {
     super(runner);
@@ -66,9 +67,9 @@ export class CypressTestRailReporter extends reporters.Spec {
      * if we are passing suiteId as a part of runtime env variables we assign that value to variable
      * usually we use this way for multi suite projects
      */
-    const cliArguments = this.testRailValidation.validateCLIArguments();
-    if (cliArguments && cliArguments.length) {
-      this.suiteId = cliArguments
+    this.cliArguments = this.testRailValidation.parseCLIArguments();
+    if (this.cliArguments.testRailSuiteId && this.cliArguments.length) {
+      this.suiteId = this.cliArguments.testRailSuiteId
     }
 
     /**
@@ -154,17 +155,19 @@ export class CypressTestRailReporter extends reporters.Spec {
   }
 
   public getRunFromPlan (suiteId: number): any {
-    this.plan.forEach( entry=> {
+    let entry_key: any;
+    for (entry_key in this.plan) { 
+      const entry = this.plan[entry_key];
       if(entry.suite_id == suiteId) {
-        entry.runs.forEach(testRun => {
-          TestRailLogger.log(JSON.stringify(testRun, null, 4))
-          if(testRun.config.toLowerCase().includes(process.env.runConfig.toLowerCase())) {
-            let caseRunId: number = testRun.id;
-            return caseRunId;
+        let run_key: any;
+        for (run_key in entry) { 
+          const testRun = entry[run_key];
+          if (testRun.config.toLowerCase().includes(this.cliArguments.runConfig.toLowerCase())){
+            return testRun.id
           }
-        });
+        }
       }
-    });
+    }
   }
 
   /**
@@ -174,7 +177,6 @@ export class CypressTestRailReporter extends reporters.Spec {
    * Note: Uploading of screenshot is configurable option
    */
   public submitResults (status, test, comment) {
-    TestRailLogger.log(JSON.stringify(test._testConfig, null, 4))
     let caseIds = titleToCaseIds(test.title)
     if (!this.plan) {
       const invalidCaseIds = caseIds.filter(caseId => !this.serverTestCaseIds.includes(caseId));
@@ -195,11 +197,8 @@ export class CypressTestRailReporter extends reporters.Spec {
       let publishedResults: any
       if(this.plan){
         caseResults.forEach((eachCase) => {
-          TestRailLogger.log(JSON.stringify(eachCase, null, 4))
           let suiteId = this.testRailApi.getSuite(eachCase.case_id)
-          TestRailLogger.log(JSON.stringify(suiteId, null, 4))
           let caseRunId: number = this.getRunFromPlan(suiteId)
-          TestRailLogger.log(JSON.stringify(caseRunId, null, 4))
           publishedResults = this.testRailApi.publishResult(eachCase, caseRunId)
         });
         

@@ -1,6 +1,3 @@
-// @ts-check
-/// <reference path="./index.d.ts" />
-
 import { reporters } from 'mocha';
 import * as moment from 'moment';
 import { TestRail } from './testrail';

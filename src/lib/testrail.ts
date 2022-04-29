@@ -87,6 +87,8 @@ export class TestRail {
   }
 
   public getPlan (planId: number) {
+    let start = new Date()
+    TestRailLogger.log(`Start time: ${start.toLocaleDateString()}`)
     let url = `${this.base}/get_plan/${planId}`
 
     return this.makeSync(
@@ -100,6 +102,10 @@ export class TestRail {
         } 
       })
       .then(response => {
+        let end = new Date()
+        TestRailLogger.log(`End time: ${end.toLocaleDateString()}`)
+        let totaltime = end.getMilliseconds() - start.getMilliseconds()
+        TestRailLogger.log(`Total time in milliseconds: ${totaltime}`)
         return response.data.entries
       })
       .catch(error => console.error(error))

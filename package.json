@@ -25,7 +25,7 @@
   "bugs": {
     "url": "https://github.com/aronwk-aaron/cypress-testrail-reporter/issues"
   },
-  "types": "src/index.d.ts",
+  "types": "src/lib/index.d.ts",
   "scripts": {
     "prepare": "tsc",
     "clean": "rimraf dist",

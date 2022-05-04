@@ -81,60 +81,22 @@ export class CypressTestRailReporter extends reporters.Spec {
     // }
 
     /**
-     * If no suiteId or runId has been passed with previous two methods
+     * If no planId has been passed then the
      * runner will not be triggered
      */
-    if ((this.suiteId && this.suiteId.toString().length) || (this.reporterOptions.planId && this.reporterOptions.planId.toString().length)) {
+    if (this.reporterOptions.planId && this.reporterOptions.planId.toString().length) {
       runner.on('start', () => {
-        
-        if (this.reporterOptions.planId) {
-          this.suiteId = false;
-          TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
+        this.suiteId = false;
+        TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
-          if( !this.plan || (this.plan && !this.plan.length) ){
-            TestRailLogger.log(`Making the api call to get the plan...`);
-            this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
-          }
-          TestRailLogger.log(`Number of suites in the plan: ${this.plan.length}`);
-
-        } else if (this.suiteId && this.suiteId.toString().length) {
-          this.serverTestCaseIds = this.testRailApi.getCases(this.suiteId);
-          /**
-          * runCounter is used to count how many spec files we have during one run
-          * in order to wait for close test run function
-          */
-          TestRailCache.store('runCounter', runCounter);
-          if (!TestRailCache.retrieve('runId')) {
-            /**
-            * creates a new TestRail Run
-            * unless a cached value already exists for an existing TestRail Run in
-            * which case that will be used and no new one created.
-            */
-              if (this.reporterOptions.suiteId) {
-                TestRailLogger.log(`Following suiteId has been set in cypress.json file: ${this.suiteId}`);
-              }
-              const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-              const name = `${this.reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
-              if (this.reporterOptions.disableDescription) {
-                var description = '';
-              } else {
-                if (process.env.CYPRESS_CI_JOB_URL) {
-                  var description = process.env.CYPRESS_CI_JOB_URL;
-                } else {
-                  var description = 'For the Cypress run visit https://dashboard.cypress.io/#/projects/runs';
-                }
-              }
-              TestRailLogger.log(`Creating TestRail Run with name: ${name}`);
-              this.testRailApi.createRun(name, description, this.suiteId);
-          } else {
-              // use the cached TestRail Run ID
-              this.runId = TestRailCache.retrieve('runId');
-              TestRailLogger.log(`Using existing TestRail Run with ID: '${this.runId}'`);
-          }
-        } else {
-          // use the cached TestRail Run ID
-          TestRailLogger.log(`Using existing TestRail Plan with ID: '${this.reporterOptions.planI}'`);   
+        if( !this.plan || (this.plan && !this.plan.length) ){
+          TestRailLogger.log(`Making the api call to get the plan...`);
+          this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
+        }  else {
+          // use the cached TestRail Plan
+          TestRailLogger.log(`Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
         }
+        TestRailLogger.log(`Number of suites in the plan: ${this.plan.length}`);
       });
 
       runner.on('pass', test => {
@@ -193,12 +155,6 @@ export class CypressTestRailReporter extends reporters.Spec {
       return;
     }
     let caseIds = casesToCaseIds(test._testConfig.cases)
-    if (!this.plan) {
-      const invalidCaseIds = caseIds.filter(caseId => !this.serverTestCaseIds.includes(caseId));
-      caseIds = caseIds.filter(caseId => this.serverTestCaseIds.includes(caseId))
-      if (invalidCaseIds.length > 0)
-        TestRailLogger.log(`The following test IDs were found in Cypress tests, but not found in Testrail: ${invalidCaseIds}`)
-    }
     if (caseIds.length) {
       const caseResults: TestRailResult[] = caseIds.map(caseId => {
         return {
@@ -210,25 +166,11 @@ export class CypressTestRailReporter extends reporters.Spec {
       TestRailLogger.log(JSON.stringify(caseResults, null, 4))
       this.results.push(...caseResults);
       let publishedResults: any
-      if(this.plan){
-        caseResults.forEach((eachCase) => {
-          let suiteId = this.testRailApi.getSuite(eachCase.case_id)
-          let caseRunId: number = this.getRunFromPlan(suiteId)
-          publishedResults = this.testRailApi.publishResult(eachCase, caseRunId)
-        });
-        
-      }else{
-        publishedResults = this.testRailApi.publishResults(caseResults)
-        if (
-          publishedResults !== undefined &&
-          this.reporterOptions.allowFailedScreenshotUpload === true &&
-          (status === Status.Failed || status === Status.Retest)
-        ) {
-          publishedResults.forEach((result) => {
-            this.testRailApi.uploadScreenshots(caseIds[0], result.id);
-          })
-        }
-      }
+      caseResults.forEach((eachCase) => {
+        let suiteId = this.testRailApi.getSuite(eachCase.case_id)
+        let caseRunId: number = this.getRunFromPlan(suiteId)
+        publishedResults = this.testRailApi.publishResult(eachCase, caseRunId)
+      });
     }
   }
 }

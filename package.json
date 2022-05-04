@@ -16,7 +16,8 @@
   },
   "license": "MIT",
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "src/lib/index.d.ts"
   ],
   "readmeFilename": "README.md",
   "repository": {

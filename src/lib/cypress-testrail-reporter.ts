@@ -127,20 +127,17 @@ export class CypressTestRailReporter extends reporters.Spec {
   }
 
   public getRunFromPlan (suiteId: number): any {
-    let caseRunId: number
-    this.plan.forEach( entry=> {
+    let caseRunId: number = 0
+    for (let [x, entry] of this.plan.entries()) {
       if(entry.suite_id == suiteId) {
-        entry.runs.forEach(testRun => {
+        for (let [y, testRun] of entry.runs.entries()) {
           if(testRun.config.toLowerCase().includes(this.reporterOptions.runConfig.toLowerCase())) {
             caseRunId = testRun.id;
-            return;
+            return caseRunId;
           }
-        });
+        }
       }
-      if(caseRunId){
-        return;
-      }
-    });
+    }
     return caseRunId;
   }
 

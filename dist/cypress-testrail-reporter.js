@@ -120,12 +120,15 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         return _this;
     }
     CypressTestRailReporter.prototype.getRunFromPlan = function (suiteId) {
-        var caseRunId = 0;
+        testrail_logger_1.TestRailLogger.log("Getting run for suiteId: " + suiteId);
+        var caseRunId;
         for (var _i = 0, _a = this.plan.entries(); _i < _a.length; _i++) {
             var _b = _a[_i], x = _b[0], entry = _b[1];
             if (entry.suite_id == suiteId) {
+                testrail_logger_1.TestRailLogger.log("Suite Id matched: " + suiteId);
                 for (var _c = 0, _d = entry.runs.entries(); _c < _d.length; _c++) {
                     var _e = _d[_c], y = _e[0], testRun = _e[1];
+                    testrail_logger_1.TestRailLogger.log("testRun: " + testRun + ", config: " + testRun.config);
                     if (testRun.config.toLowerCase().includes(this.reporterOptions.runConfig.toLowerCase())) {
                         caseRunId = testRun.id;
                         return caseRunId;
@@ -133,7 +136,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 }
             }
         }
-        return caseRunId;
+        return undefined;
     };
     /**
      * Ensure that after each test results are reported continuously
@@ -162,6 +165,10 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
             caseResults.forEach(function (eachCase) {
                 var suiteId = _this.testRailApi.getSuite(eachCase.case_id);
                 var caseRunId = _this.getRunFromPlan(suiteId);
+                if (caseRunId == undefined) {
+                    testrail_logger_1.TestRailLogger.log("No runs for config: " + _this.reporterOptions.runConfig.toLowerCase());
+                    return;
+                }
                 publishedResults_1 = _this.testRailApi.publishResult(eachCase, caseRunId);
             });
         }

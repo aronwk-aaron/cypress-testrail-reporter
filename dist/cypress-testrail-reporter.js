@@ -124,6 +124,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         var caseRunId;
         for (var _i = 0, _a = this.plan.entries(); _i < _a.length; _i++) {
             var _b = _a[_i], x = _b[0], entry = _b[1];
+            testrail_logger_1.TestRailLogger.log("Entry suite_id: " + entry.suite_id);
             if (entry.suite_id == suiteId) {
                 testrail_logger_1.TestRailLogger.log("Suite Id matched: " + suiteId);
                 for (var _c = 0, _d = entry.runs.entries(); _c < _d.length; _c++) {

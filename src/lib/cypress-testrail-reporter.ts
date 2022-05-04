@@ -131,6 +131,7 @@ export class CypressTestRailReporter extends reporters.Spec {
 
     let caseRunId: number
     for (let [x, entry] of this.plan.entries()) {
+      TestRailLogger.log(`Entry suite_id: ${entry.suite_id}`);
       if(entry.suite_id == suiteId) {
         TestRailLogger.log(`Suite Id matched: ${suiteId}`);
         for (let [y, testRun] of entry.runs.entries()) {

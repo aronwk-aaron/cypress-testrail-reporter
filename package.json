@@ -4,6 +4,7 @@
   "description": "A Testrail reporter for cypress including TestRail API basic library",
   "main": "index.js",
   "private": false,
+  "types": "src/lib/index.d.ts",
   "keywords": [
     "cypress",
     "testrail",

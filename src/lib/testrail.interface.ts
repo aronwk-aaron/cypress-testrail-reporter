@@ -51,10 +51,6 @@ export interface TestRailCase {
   custom_goals?: string;
 }
 
-
-
-
-
 export interface TestRailRun {
   id: number,
   suite_id: number,
@@ -62,6 +58,7 @@ export interface TestRailRun {
   description: string,
   config: string
 }
+
 export interface TestRailEntry {
   id: number,
   suite_id: number,
@@ -69,6 +66,7 @@ export interface TestRailEntry {
   description: string,
   runs: TestRailRun[]
 }
+
 export interface TestRailPlan {
   id: number,
   name: string,

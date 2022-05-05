@@ -90,13 +90,13 @@ export class CypressTestRailReporter extends reporters.Spec {
         TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
         if( !this.plan || (this.plan && !this.plan.entries.length) ){
-          TestRailLogger.log(`Making the api call to get the plan...`);
+          console.log(`Making the api call to get the plan...`);
           this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
         }  else {
           // use the cached TestRail Plan
-          TestRailLogger.log(`Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
+          console.log(`Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
         }
-        TestRailLogger.log(`Number of suites in the plan: ${this.plan.entries.length}`);
+        console.log(`Number of suites in the plan: ${this.plan.entries.length}`);
       });
 
       runner.on('pass', test => {
@@ -117,7 +117,7 @@ export class CypressTestRailReporter extends reporters.Spec {
          */
         TestRailCache.purge();
         if (this.results.length == 0) {
-          TestRailLogger.warn('No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+          console.warn('[TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
         } else {
           // var path = `runs/view/${this.runId}`;
           // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
@@ -127,15 +127,10 @@ export class CypressTestRailReporter extends reporters.Spec {
   }
 
   public getRunFromPlan (suiteId: number) {
-    TestRailLogger.log(`Getting run for suiteId: ${suiteId}`);
-
     let caseRunId: number
     for (let [x, entry] of Object.entries(this.plan.entries)) {
-      TestRailLogger.log(`Entry suite_id: ${entry.suite_id}`);
       if(entry.suite_id == suiteId) {
-        TestRailLogger.log(`Suite Id matched: ${suiteId}`);
         for (let [y, testRun] of Object.entries(entry.runs)) {
-          TestRailLogger.log(`testRun: ${testRun}, config: ${testRun.config}`);
           if(testRun.config.toLowerCase().includes(this.reporterOptions.runConfig.toLowerCase())) {
             caseRunId = testRun.id;
             return caseRunId;
@@ -165,17 +160,19 @@ export class CypressTestRailReporter extends reporters.Spec {
           comment: comment,
         };
       });
-      TestRailLogger.log(JSON.stringify(caseResults, null, 4))
       this.results.push(...caseResults);
       let publishedResults: any
       for( let [x,eachCase] of Object.entries(caseResults)) {
         let suiteId = this.testRailApi.getSuite(eachCase.case_id)
         let caseRunId: number = this.getRunFromPlan(suiteId)
         if(caseRunId == undefined) {
-          TestRailLogger.log(`No runs for config: ${this.reporterOptions.runConfig.toLowerCase()}`);
-          return;
+          console.log(`[TestRail] No runs for config: ${this.reporterOptions.runConfig.toLowerCase()}`);
+          continue;
         }
         publishedResults = this.testRailApi.publishResult(eachCase, caseRunId)
+        if(publishedResults.status == 200) {
+          console.log(`[TestRail] result published`);
+        }
       }
     }
   }

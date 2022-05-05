@@ -165,7 +165,7 @@ export class TestRail {
         },
         data: JSON.stringify({ results }),
       })
-      .then(response => response.data)
+      .then(response => response)
       .catch(error => { 
         console.error(error); 
       })

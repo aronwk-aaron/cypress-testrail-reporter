@@ -90,13 +90,13 @@ export class CypressTestRailReporter extends reporters.Spec {
         TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
         if( !this.plan || (this.plan && !this.plan.entries.length) ){
-          console.log(`Making the api call to get the plan...`);
+          console.log(` - Making the api call to get the plan...`);
           this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
         }  else {
           // use the cached TestRail Plan
-          console.log(`Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
+          console.log(` - Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
         }
-        console.log(`Number of suites in the plan: ${this.plan.entries.length}`);
+        console.log(` - Number of suites in the plan: ${this.plan.entries.length}`);
       });
 
       runner.on('pass', test => {
@@ -117,7 +117,7 @@ export class CypressTestRailReporter extends reporters.Spec {
          */
         TestRailCache.purge();
         if (this.results.length == 0) {
-          console.warn('[TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+          console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
         } else {
           // var path = `runs/view/${this.runId}`;
           // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
@@ -166,12 +166,12 @@ export class CypressTestRailReporter extends reporters.Spec {
         let suiteId = this.testRailApi.getSuite(eachCase.case_id)
         let caseRunId: number = this.getRunFromPlan(suiteId)
         if(caseRunId == undefined) {
-          console.log(`[TestRail] No runs for config: ${this.reporterOptions.runConfig.toLowerCase()}`);
+          console.log(' - ', chalk.magenta.underline.bold('[TestRail]'), ` No runs for config: ${this.reporterOptions.runConfig.toLowerCase()}`);
           continue;
         }
         publishedResults = this.testRailApi.publishResult(eachCase, caseRunId)
         if(publishedResults.status == 200) {
-          console.log(`[TestRail] result published`);
+          console.log(' - ', chalk.magenta.underline.bold('[TestRail]'), 'result published');
         }
       }
     }

@@ -100,7 +100,7 @@ export class TestRail {
         } 
       })
       .then(response => {
-        return response.data.entries
+        return response.data
       })
       .catch(error => console.error(error))
     )

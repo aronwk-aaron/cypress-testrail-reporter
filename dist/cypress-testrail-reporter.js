@@ -85,14 +85,14 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 _this.suiteId = false;
                 testrail_logger_1.TestRailLogger.log("Following planID has been set: " + _this.reporterOptions.planId);
                 if (!_this.plan || (_this.plan && !_this.plan.entries.length)) {
-                    testrail_logger_1.TestRailLogger.log("Making the api call to get the plan...");
+                    console.log("Making the api call to get the plan...");
                     _this.plan = _this.testRailApi.getPlan(_this.reporterOptions.planId);
                 }
                 else {
                     // use the cached TestRail Plan
-                    testrail_logger_1.TestRailLogger.log("Using existing TestRail Plan with ID: '" + _this.reporterOptions.planId + "'");
+                    console.log("Using existing TestRail Plan with ID: '" + _this.reporterOptions.planId + "'");
                 }
-                testrail_logger_1.TestRailLogger.log("Number of suites in the plan: " + _this.plan.entries.length);
+                console.log("Number of suites in the plan: " + _this.plan.entries.length);
             });
             runner.on('pass', function (test) {
                 _this.submitResults(testrail_interface_1.Status.Passed, test, "Execution time: " + test.duration + "ms");
@@ -109,7 +109,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                  */
                 testrail_cache_1.TestRailCache.purge();
                 if (_this.results.length == 0) {
-                    testrail_logger_1.TestRailLogger.warn('No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+                    console.warn('[TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
                 }
                 else {
                     // var path = `runs/view/${this.runId}`;
@@ -120,16 +120,12 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         return _this;
     }
     CypressTestRailReporter.prototype.getRunFromPlan = function (suiteId) {
-        testrail_logger_1.TestRailLogger.log("Getting run for suiteId: " + suiteId);
         var caseRunId;
         for (var _i = 0, _a = Object.entries(this.plan.entries); _i < _a.length; _i++) {
             var _b = _a[_i], x = _b[0], entry = _b[1];
-            testrail_logger_1.TestRailLogger.log("Entry suite_id: " + entry.suite_id);
             if (entry.suite_id == suiteId) {
-                testrail_logger_1.TestRailLogger.log("Suite Id matched: " + suiteId);
                 for (var _c = 0, _d = Object.entries(entry.runs); _c < _d.length; _c++) {
                     var _e = _d[_c], y = _e[0], testRun = _e[1];
-                    testrail_logger_1.TestRailLogger.log("testRun: " + testRun + ", config: " + testRun.config);
                     if (testRun.config.toLowerCase().includes(this.reporterOptions.runConfig.toLowerCase())) {
                         caseRunId = testRun.id;
                         return caseRunId;
@@ -159,7 +155,6 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                     comment: comment,
                 };
             });
-            testrail_logger_1.TestRailLogger.log(JSON.stringify(caseResults, null, 4));
             (_a = this.results).push.apply(_a, caseResults);
             var publishedResults = void 0;
             for (var _i = 0, _b = Object.entries(caseResults); _i < _b.length; _i++) {
@@ -167,10 +162,13 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 var suiteId = this.testRailApi.getSuite(eachCase.case_id);
                 var caseRunId = this.getRunFromPlan(suiteId);
                 if (caseRunId == undefined) {
-                    testrail_logger_1.TestRailLogger.log("No runs for config: " + this.reporterOptions.runConfig.toLowerCase());
-                    return;
+                    console.log("[TestRail] No runs for config: " + this.reporterOptions.runConfig.toLowerCase());
+                    continue;
                 }
                 publishedResults = this.testRailApi.publishResult(eachCase, caseRunId);
+                if (publishedResults.status == 200) {
+                    console.log("[TestRail] result published");
+                }
             }
         }
     };

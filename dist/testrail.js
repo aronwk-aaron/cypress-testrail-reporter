@@ -198,7 +198,7 @@ var TestRail = /** @class */ (function () {
             },
             data: JSON.stringify({ results: results }),
         })
-            .then(function (response) { return response.data; })
+            .then(function (response) { return response; })
             .catch(function (error) {
             console.error(error);
         }));

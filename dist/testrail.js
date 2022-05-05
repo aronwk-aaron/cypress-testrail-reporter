@@ -141,7 +141,7 @@ var TestRail = /** @class */ (function () {
             }
         })
             .then(function (response) {
-            return response.data.entries;
+            return response.data;
         })
             .catch(function (error) { return console.error(error); }));
     };

@@ -23,6 +23,7 @@ var testrail_interface_1 = require("./testrail.interface");
 var testrail_validation_1 = require("./testrail.validation");
 var testrail_logger_1 = require("./testrail.logger");
 var testrail_cache_1 = require("./testrail.cache");
+var chalk_1 = require("chalk");
 var runCounter = 1;
 var CypressTestRailReporter = /** @class */ (function (_super) {
     __extends(CypressTestRailReporter, _super);
@@ -85,14 +86,14 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 _this.suiteId = false;
                 testrail_logger_1.TestRailLogger.log("Following planID has been set: " + _this.reporterOptions.planId);
                 if (!_this.plan || (_this.plan && !_this.plan.entries.length)) {
-                    console.log("Making the api call to get the plan...");
+                    console.log(" - Making the api call to get the plan...");
                     _this.plan = _this.testRailApi.getPlan(_this.reporterOptions.planId);
                 }
                 else {
                     // use the cached TestRail Plan
-                    console.log("Using existing TestRail Plan with ID: '" + _this.reporterOptions.planId + "'");
+                    console.log(" - Using existing TestRail Plan with ID: '" + _this.reporterOptions.planId + "'");
                 }
-                console.log("Number of suites in the plan: " + _this.plan.entries.length);
+                console.log(" - Number of suites in the plan: " + _this.plan.entries.length);
             });
             runner.on('pass', function (test) {
                 _this.submitResults(testrail_interface_1.Status.Passed, test, "Execution time: " + test.duration + "ms");
@@ -109,7 +110,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                  */
                 testrail_cache_1.TestRailCache.purge();
                 if (_this.results.length == 0) {
-                    console.warn('[TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+                    console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
                 }
                 else {
                     // var path = `runs/view/${this.runId}`;
@@ -162,12 +163,12 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                 var suiteId = this.testRailApi.getSuite(eachCase.case_id);
                 var caseRunId = this.getRunFromPlan(suiteId);
                 if (caseRunId == undefined) {
-                    console.log("[TestRail] No runs for config: " + this.reporterOptions.runConfig.toLowerCase());
+                    console.log(' - ', chalk_1.default.magenta.underline.bold('[TestRail]'), " No runs for config: " + this.reporterOptions.runConfig.toLowerCase());
                     continue;
                 }
                 publishedResults = this.testRailApi.publishResult(eachCase, caseRunId);
                 if (publishedResults.status == 200) {
-                    console.log("[TestRail] result published");
+                    console.log(' - ', chalk_1.default.magenta.underline.bold('[TestRail]'), 'result published');
                 }
             }
         }

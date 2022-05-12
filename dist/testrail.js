@@ -84,192 +84,292 @@ var TestRail = /** @class */ (function () {
         return result;
     };
     TestRail.prototype.getCases = function (suiteId) {
-        var url = this.base + "/get_cases/" + this.options.projectId + "&suite_id=" + suiteId;
-        if (this.options.groupId) {
-            url += "&section_id=" + this.options.groupId;
-        }
-        if (this.options.filter) {
-            url += "&filter=" + this.options.filter;
-        }
-        if (this.options.typeId) {
-            url += "&type_id=" + this.options.typeId;
-        }
-        return this.makeSync((0, axios_1.default)({
-            method: 'get',
-            url: url,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password
-            }
-        })
-            .then(function (response) {
-            if (response.data.cases) {
-                return response.data.cases.map(function (item) { return item.id; });
-            }
-            else {
-                return response.data.map(function (item) { return item.id; });
-            }
-        })
-            .catch(function (error) { return console.error(error); }));
+        return __awaiter(this, void 0, void 0, function () {
+            var url;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = this.base + "/get_cases/" + this.options.projectId + "&suite_id=" + suiteId;
+                        if (this.options.groupId) {
+                            url += "&section_id=" + this.options.groupId;
+                        }
+                        if (this.options.filter) {
+                            url += "&filter=" + this.options.filter;
+                        }
+                        if (this.options.typeId) {
+                            url += "&type_id=" + this.options.typeId;
+                        }
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'get',
+                                url: url,
+                                headers: { 'Content-Type': 'application/json' },
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password
+                                }
+                            })
+                                .then(function (response) {
+                                if (response.data.cases) {
+                                    return response.data.cases.map(function (item) { return item.id; });
+                                }
+                                else {
+                                    return response.data.map(function (item) { return item.id; });
+                                }
+                            })
+                                .catch(function (error) { return console.error(error); })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TestRail.prototype.getSuite = function (caseId) {
-        var url = this.base + "/get_case/" + caseId;
-        return this.makeSync((0, axios_1.default)({
-            method: 'get',
-            url: url,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password
-            }
-        })
-            .then(function (response) {
-            return response.data.suite_id;
-        })
-            .catch(function (error) { return console.error(error); }));
+        return __awaiter(this, void 0, void 0, function () {
+            var url;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = this.base + "/get_case/" + caseId;
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'get',
+                                url: url,
+                                headers: { 'Content-Type': 'application/json' },
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password
+                                }
+                            })
+                                .then(function (response) {
+                                return response.data.suite_id;
+                            })
+                                .catch(function (error) { return console.error(error); })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TestRail.prototype.getPlan = function (planId) {
-        var url = this.base + "/get_plan/" + planId;
-        return this.makeSync((0, axios_1.default)({
-            method: 'get',
-            url: url,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password
-            }
-        })
-            .then(function (response) {
-            return response.data;
-        })
-            .catch(function (error) { return console.error(error); }));
+        return __awaiter(this, void 0, void 0, function () {
+            var url;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        url = this.base + "/get_plan/" + planId;
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'get',
+                                url: url,
+                                headers: { 'Content-Type': 'application/json' },
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password
+                                }
+                            })
+                                .then(function (response) {
+                                return response.data;
+                            })
+                                .catch(function (error) { return console.error(error); })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TestRail.prototype.createRun = function (name, description, suiteId) {
-        var _this = this;
-        if (this.options.includeAllInTestRun === false) {
-            this.includeAll = false;
-            this.caseIds = this.getCases(suiteId);
-        }
-        this.makeSync((0, axios_1.default)({
-            method: 'post',
-            url: this.base + "/add_run/" + this.options.projectId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-            data: JSON.stringify({
-                suite_id: suiteId,
-                name: name,
-                description: description,
-                include_all: this.includeAll,
-                case_ids: this.caseIds
-            }),
-        })
-            .then(function (response) {
-            _this.runId = response.data.id;
-            // cache the TestRail Run ID
-            testrail_cache_1.TestRailCache.store('runId', _this.runId);
-        })
-            .catch(function (error) { return console.error(error); }));
+        return __awaiter(this, void 0, void 0, function () {
+            var _a;
+            var _this = this;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
+                    case 0:
+                        if (!(this.options.includeAllInTestRun === false)) return [3 /*break*/, 2];
+                        this.includeAll = false;
+                        _a = this;
+                        return [4 /*yield*/, this.getCases(suiteId)];
+                    case 1:
+                        _a.caseIds = _b.sent();
+                        _b.label = 2;
+                    case 2: return [4 /*yield*/, (0, axios_1.default)({
+                            method: 'post',
+                            url: this.base + "/add_run/" + this.options.projectId,
+                            headers: { 'Content-Type': 'application/json' },
+                            auth: {
+                                username: this.options.username,
+                                password: this.options.password,
+                            },
+                            data: JSON.stringify({
+                                suite_id: suiteId,
+                                name: name,
+                                description: description,
+                                include_all: this.includeAll,
+                                case_ids: this.caseIds
+                            }),
+                        })
+                            .then(function (response) {
+                            _this.runId = response.data.id;
+                            // cache the TestRail Run ID
+                            testrail_cache_1.TestRailCache.store('runId', _this.runId);
+                        })
+                            .catch(function (error) { return console.error(error); })];
+                    case 3:
+                        _b.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     TestRail.prototype.deleteRun = function () {
-        this.runId = testrail_cache_1.TestRailCache.retrieve('runId');
-        this.makeSync((0, axios_1.default)({
-            method: 'post',
-            url: this.base + "/delete_run/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-        }).catch(function (error) { return console.error(error); }));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.runId = testrail_cache_1.TestRailCache.retrieve('runId');
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'post',
+                                url: this.base + "/delete_run/" + this.runId,
+                                headers: { 'Content-Type': 'application/json' },
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password,
+                                },
+                            }).catch(function (error) { return console.error(error); })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     TestRail.prototype.publishResult = function (result, runId) {
-        var results = [result];
-        return this.makeSync((0, axios_1.default)({
-            method: 'post',
-            url: this.base + "/add_results_for_cases/" + runId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-            data: JSON.stringify({ results: results }),
-        })
-            .then(function (response) { return response; })
-            .catch(function (error) {
-            console.error(error);
-        }));
+        return __awaiter(this, void 0, void 0, function () {
+            var results;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        results = [result];
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'post',
+                                url: this.base + "/add_results_for_cases/" + runId,
+                                headers: { 'Content-Type': 'application/json' },
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password,
+                                },
+                                data: JSON.stringify({ results: results }),
+                            })
+                                .then(function (response) { return response; })
+                                .catch(function (error) {
+                                console.error(error);
+                            })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TestRail.prototype.publishResults = function (results) {
-        this.runId = testrail_cache_1.TestRailCache.retrieve('runId');
-        return this.makeSync((0, axios_1.default)({
-            method: 'post',
-            url: this.base + "/add_results_for_cases/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-            data: JSON.stringify({ results: results }),
-        })
-            .then(function (response) { return response.data; })
-            .catch(function (error) {
-            console.error(error);
-        }));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.runId = testrail_cache_1.TestRailCache.retrieve('runId');
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'post',
+                                url: this.base + "/add_results_for_cases/" + this.runId,
+                                headers: { 'Content-Type': 'application/json' },
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password,
+                                },
+                                data: JSON.stringify({ results: results }),
+                            })
+                                .then(function (response) { return response.data; })
+                                .catch(function (error) {
+                                console.error(error);
+                            })];
+                    case 1: return [2 /*return*/, _a.sent()];
+                }
+            });
+        });
     };
     TestRail.prototype.uploadAttachment = function (resultId, path) {
-        var form = new FormData();
-        form.append('attachment', fs.createReadStream(path));
-        this.makeSync((0, axios_1.default)({
-            method: 'post',
-            url: this.base + "/add_attachment_to_result/" + resultId,
-            headers: __assign({}, form.getHeaders()),
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-            data: form,
-        }));
+        return __awaiter(this, void 0, void 0, function () {
+            var form;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        form = new FormData();
+                        form.append('attachment', fs.createReadStream(path));
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'post',
+                                url: this.base + "/add_attachment_to_result/" + resultId,
+                                headers: __assign({}, form.getHeaders()),
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password,
+                                },
+                                data: form,
+                            })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     // This function will attach failed screenshot on each test result(comment) if founds it
     TestRail.prototype.uploadScreenshots = function (caseId, resultId) {
-        var _this = this;
-        var SCREENSHOTS_FOLDER_PATH = path.join(__dirname, 'cypress/screenshots');
-        fs.readdir(SCREENSHOTS_FOLDER_PATH, function (err, files) {
-            if (err) {
-                return console.log('Unable to scan screenshots folder: ' + err);
-            }
-            files.forEach(function (file) {
-                if (file.includes("C" + caseId) && /(failed|attempt)/g.test(file)) {
-                    try {
-                        _this.uploadAttachment(resultId, SCREENSHOTS_FOLDER_PATH + file);
-                    }
-                    catch (err) {
-                        console.log('Screenshot upload error: ', err);
-                    }
+        return __awaiter(this, void 0, void 0, function () {
+            var SCREENSHOTS_FOLDER_PATH;
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        SCREENSHOTS_FOLDER_PATH = path.join(__dirname, 'cypress/screenshots');
+                        return [4 /*yield*/, fs.readdir(SCREENSHOTS_FOLDER_PATH, function (err, files) {
+                                if (err) {
+                                    return console.log('Unable to scan screenshots folder: ' + err);
+                                }
+                                files.forEach(function (file) {
+                                    if (file.includes("C" + caseId) && /(failed|attempt)/g.test(file)) {
+                                        try {
+                                            _this.uploadAttachment(resultId, SCREENSHOTS_FOLDER_PATH + file);
+                                        }
+                                        catch (err) {
+                                            console.log('Screenshot upload error: ', err);
+                                        }
+                                    }
+                                });
+                            })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
                 }
             });
         });
     };
     ;
     TestRail.prototype.closeRun = function () {
-        this.runId = testrail_cache_1.TestRailCache.retrieve('runId');
-        this.makeSync((0, axios_1.default)({
-            method: 'post',
-            url: this.base + "/close_run/" + this.runId,
-            headers: { 'Content-Type': 'application/json' },
-            auth: {
-                username: this.options.username,
-                password: this.options.password,
-            },
-        })
-            .then(function () {
-            testrail_logger_1.TestRailLogger.log('Test run closed successfully');
-        })
-            .catch(function (error) { return console.error(error); }));
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        this.runId = testrail_cache_1.TestRailCache.retrieve('runId');
+                        return [4 /*yield*/, (0, axios_1.default)({
+                                method: 'post',
+                                url: this.base + "/close_run/" + this.runId,
+                                headers: { 'Content-Type': 'application/json' },
+                                auth: {
+                                    username: this.options.username,
+                                    password: this.options.password,
+                                },
+                            })
+                                .then(function () {
+                                testrail_logger_1.TestRailLogger.log('Test run closed successfully');
+                            })
+                                .catch(function (error) { return console.error(error); })];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        });
     };
     return TestRail;
 }());

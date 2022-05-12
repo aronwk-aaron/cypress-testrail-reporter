@@ -34,7 +34,7 @@ export class TestRail {
     return result;
   }
 
-  public getCases (suiteId: number) {
+  public async getCases (suiteId: number)  {
     let url = `${this.base}/get_cases/${this.options.projectId}&suite_id=${suiteId}`
     if (this.options.groupId) {
       url += `&section_id=${this.options.groupId}`
@@ -45,8 +45,7 @@ export class TestRail {
     if (this.options.typeId) {
       url += `&type_id=${this.options.typeId}`
     }
-    return this.makeSync(
-      axios({
+    return await axios({
         method:'get',
         url: url,
         headers: { 'Content-Type': 'application/json' }, 
@@ -63,14 +62,12 @@ export class TestRail {
         }
       })
       .catch(error => console.error(error))
-    )
   }
   
-  public getSuite (caseId: number) {
+  public async getSuite (caseId: number) {
     let url = `${this.base}/get_case/${caseId}`
 
-    return this.makeSync(
-      axios({
+    return await axios({
         method:'get',
         url: url,
         headers: { 'Content-Type': 'application/json' }, 
@@ -83,14 +80,12 @@ export class TestRail {
         return response.data.suite_id
       })
       .catch(error => console.error(error))
-    )
   }
 
-  public getPlan (planId: number) {
+  public async getPlan (planId: number) {
     let url = `${this.base}/get_plan/${planId}`
 
-    return this.makeSync(
-      axios({
+    return await axios({
         method:'get',
         url: url,
         headers: { 'Content-Type': 'application/json' }, 
@@ -103,16 +98,14 @@ export class TestRail {
         return response.data
       })
       .catch(error => console.error(error))
-    )
   }
 
-  public createRun (name: string, description: string, suiteId: number) {
+  public async createRun (name: string, description: string, suiteId: number) {
     if (this.options.includeAllInTestRun === false){
       this.includeAll = false;
-      this.caseIds = this.getCases(suiteId);
+      this.caseIds =  await this.getCases(suiteId);
     }
-    this.makeSync(
-      axios({
+    await axios({
         method: 'post',
         url: `${this.base}/add_run/${this.options.projectId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -134,13 +127,11 @@ export class TestRail {
           TestRailCache.store('runId', this.runId);
       })
       .catch(error => console.error(error))
-    );
   }
 
-  public deleteRun() {
+  public async deleteRun() {
     this.runId = TestRailCache.retrieve('runId');
-    this.makeSync(
-      axios({
+    await axios({
         method: 'post',
         url: `${this.base}/delete_run/${this.runId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -149,13 +140,11 @@ export class TestRail {
           password: this.options.password,
         },
       }).catch(error => console.error(error))
-    )
   }
 
-  public publishResult(result: TestRailResult, runId: number) {
+  public async publishResult(result: TestRailResult, runId: number) {
     let results: TestRailResult[] = [result]
-    return this.makeSync(
-      axios({
+    return await axios({
         method: 'post',
         url: `${this.base}/add_results_for_cases/${runId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -169,12 +158,10 @@ export class TestRail {
       .catch(error => { 
         console.error(error); 
       })
-    )
   }
-  public publishResults(results: TestRailResult[]) {
+  public async publishResults(results: TestRailResult[]) {
     this.runId = TestRailCache.retrieve('runId');
-    return this.makeSync(
-      axios({
+    return await axios({
         method: 'post',
         url: `${this.base}/add_results_for_cases/${this.runId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -188,15 +175,13 @@ export class TestRail {
       .catch(error => { 
         console.error(error); 
       })
-    )
   }
 
-  public uploadAttachment (resultId, path) {
+  public async uploadAttachment (resultId, path) {
     const form = new FormData();
     form.append('attachment', fs.createReadStream(path));
 
-    this.makeSync(
-      axios({
+    await axios({
         method: 'post',
         url: `${this.base}/add_attachment_to_result/${resultId}`,
         headers: { ...form.getHeaders() },
@@ -206,14 +191,13 @@ export class TestRail {
         },
         data: form,
       })
-    )
   }
 
   // This function will attach failed screenshot on each test result(comment) if founds it
-  public uploadScreenshots (caseId, resultId) {
+  public async uploadScreenshots (caseId, resultId) {
     const SCREENSHOTS_FOLDER_PATH = path.join(__dirname, 'cypress/screenshots');
 
-    fs.readdir(SCREENSHOTS_FOLDER_PATH, (err, files) => {
+    await fs.readdir(SCREENSHOTS_FOLDER_PATH, (err, files) => {
       if (err) {
         return console.log('Unable to scan screenshots folder: ' + err);
       } 
@@ -230,10 +214,9 @@ export class TestRail {
     });
   };
 
-  public closeRun() {
+  public async closeRun() {
     this.runId = TestRailCache.retrieve('runId');
-    this.makeSync(
-      axios({
+    await axios({
         method: 'post',
         url: `${this.base}/close_run/${this.runId}`,
         headers: { 'Content-Type': 'application/json' },
@@ -246,6 +229,5 @@ export class TestRail {
           TestRailLogger.log('Test run closed successfully');
       })
       .catch(error => console.error(error))
-    );
   }
 }

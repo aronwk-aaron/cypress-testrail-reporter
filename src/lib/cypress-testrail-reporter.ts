@@ -85,13 +85,13 @@ export class CypressTestRailReporter extends reporters.Spec {
      * runner will not be triggered
      */
     if (this.reporterOptions.planId && this.reporterOptions.planId.toString().length) {
-      runner.on('start', () => {
+      runner.on('start', async () => {
         this.suiteId = false;
         TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
         if( !this.plan || (this.plan && !this.plan.entries.length) ){
           console.log(` - Making the api call to get the plan...`);
-          this.plan = this.testRailApi.getPlan(this.reporterOptions.planId)
+          this.plan = await this.testRailApi.getPlan(this.reporterOptions.planId)
         }  else {
           // use the cached TestRail Plan
           console.log(` - Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
@@ -99,16 +99,16 @@ export class CypressTestRailReporter extends reporters.Spec {
         console.log(` - Number of suites in the plan: ${this.plan.entries.length}`);
       });
 
-      runner.on('pass', test => {
-        this.submitResults(Status.Passed, test, `Execution time: ${test.duration}ms`);
+      runner.on('pass', async test => {
+        await this.submitResults(Status.Passed, test, `Execution time: ${test.duration}ms`);
       });
 
-      runner.on('fail', (test, err) => {
-        this.submitResults(Status.Failed, test, `${err.message}`);
+      runner.on('fail', async (test, err) => {
+        await this.submitResults(Status.Failed, test, `${err.message}`);
       });
 
-      runner.on('retry', test => {
-        this.submitResults(Status.Retest, test, 'Cypress retry logic has been triggered!');
+      runner.on('retry', async test => {
+        await this.submitResults(Status.Retest, test, 'Cypress retry logic has been triggered!');
       });
 
       runner.on('end', () => {
@@ -147,7 +147,7 @@ export class CypressTestRailReporter extends reporters.Spec {
    * to upload failed screenshot for easier debugging in TestRail
    * Note: Uploading of screenshot is configurable option
    */
-  public submitResults (status, test, comment) {
+  public async submitResults (status, test, comment) {
     if (!test._testConfig.cases){
       return;
     }
@@ -163,13 +163,13 @@ export class CypressTestRailReporter extends reporters.Spec {
       this.results.push(...caseResults);
       let publishedResults: any
       for( let [x,eachCase] of Object.entries(caseResults)) {
-        let suiteId = this.testRailApi.getSuite(eachCase.case_id)
-        let caseRunId: number = this.getRunFromPlan(suiteId)
+        let suiteId = await this.testRailApi.getSuite(eachCase.case_id)
+        let caseRunId: number = await this.getRunFromPlan(suiteId)
         if(caseRunId == undefined) {
           console.log(' - ', chalk.magenta.underline.bold('[TestRail]'), ` No runs for config: ${this.reporterOptions.runConfig.toLowerCase()}`);
           continue;
         }
-        publishedResults = this.testRailApi.publishResult(eachCase, caseRunId)
+        publishedResults = await this.testRailApi.publishResult(eachCase, caseRunId)
         if(publishedResults.status == 200) {
           console.log(' - ', chalk.magenta.underline.bold('[TestRail]'), 'result published');
         }

@@ -111,7 +111,7 @@ export class CypressTestRailReporter extends reporters.Spec {
         await this.submitResults(Status.Retest, test, 'Cypress retry logic has been triggered!');
       });
 
-      runner.on('end', () => {
+      runner.on('end', async () => {
         /**
          * Notify about the results at the end of execution
          */
@@ -122,6 +122,8 @@ export class CypressTestRailReporter extends reporters.Spec {
           // var path = `runs/view/${this.runId}`;
           // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
         }
+        await this.testRailApi.getPlan(this.reporterOptions.planId)
+        console.log(` - Finished last call to this.testRailapi.getPlan`);
       });
     }
   }

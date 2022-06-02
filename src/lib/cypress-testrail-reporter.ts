@@ -122,7 +122,8 @@ export class CypressTestRailReporter extends reporters.Spec {
           // var path = `runs/view/${this.runId}`;
           // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
         }
-        await this.testRailApi.getPlan(this.reporterOptions.planId)
+        console.log(` - Starting last call to this.testRailapi.getPlan`);
+        await this.testRailApi.getPlan(this.reporterOptions.planId);
         console.log(` - Finished last call to this.testRailapi.getPlan`);
       });
     }

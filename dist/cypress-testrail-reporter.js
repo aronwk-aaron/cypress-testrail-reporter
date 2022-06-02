@@ -172,19 +172,30 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                     }
                 });
             }); });
-            runner.on('end', function () {
-                /**
-                 * Notify about the results at the end of execution
-                 */
-                testrail_cache_1.TestRailCache.purge();
-                if (_this.results.length == 0) {
-                    console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
-                }
-                else {
-                    // var path = `runs/view/${this.runId}`;
-                    // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
-                }
-            });
+            runner.on('end', function () { return __awaiter(_this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            /**
+                             * Notify about the results at the end of execution
+                             */
+                            testrail_cache_1.TestRailCache.purge();
+                            if (this.results.length == 0) {
+                                console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+                            }
+                            else {
+                                // var path = `runs/view/${this.runId}`;
+                                // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
+                            }
+                            console.log(" - Starting last call to this.testRailapi.getPlan");
+                            return [4 /*yield*/, this.testRailApi.getPlan(this.reporterOptions.planId)];
+                        case 1:
+                            _a.sent();
+                            console.log(" - Finished last call to this.testRailapi.getPlan");
+                            return [2 /*return*/];
+                    }
+                });
+            }); });
         }
         return _this;
     }

@@ -21,7 +21,7 @@ export class CypressTestRailReporter extends reporters.Spec {
   private cliArguments: any;
 
   constructor(runner: any, options: any) {
-    super(runner);
+    super(runner,{asyncOnly: true});
 
     this.reporterOptions = options.reporterOptions;
 

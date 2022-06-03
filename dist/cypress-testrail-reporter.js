@@ -64,7 +64,7 @@ var runCounter = 1;
 var CypressTestRailReporter = /** @class */ (function (_super) {
     __extends(CypressTestRailReporter, _super);
     function CypressTestRailReporter(runner, options) {
-        var _this = _super.call(this, runner) || this;
+        var _this = _super.call(this, runner, { asyncOnly: true }) || this;
         _this.results = [];
         _this.suiteId = [];
         _this.serverTestCaseIds = [];

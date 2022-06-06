@@ -64,7 +64,7 @@ var runCounter = 1;
 var CypressTestRailReporter = /** @class */ (function (_super) {
     __extends(CypressTestRailReporter, _super);
     function CypressTestRailReporter(runner, options) {
-        var _this = _super.call(this, runner, { asyncOnly: true }) || this;
+        var _this = _super.call(this, runner) || this;
         _this.results = [];
         _this.suiteId = [];
         _this.serverTestCaseIds = [];
@@ -104,6 +104,7 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         if (_this.reporterOptions.suiteId) {
             _this.suiteId = _this.reporterOptions.suiteId;
         }
+        return _this;
         /**
          * This will validate runtime environment variables
          * if we are passing suiteId as a part of runtime env variables we assign that value to variable
@@ -113,16 +114,30 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
         // if (this.cliArguments.testRailSuiteId && this.cliArguments.length) {
         //   this.suiteId = this.cliArguments.testRailSuiteId
         // }
-        /**
-         * If no planId has been passed then the
-         * runner will not be triggered
-         */
-        if (_this.reporterOptions.planId && _this.reporterOptions.planId.toString().length) {
-            (function () { return __awaiter(_this, void 0, void 0, function () {
-                var _this = this;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0: return [4 /*yield*/, runner.on('start', function () { return __awaiter(_this, void 0, void 0, function () {
+    }
+    CypressTestRailReporter.initializer = function (runner, options) {
+        return __awaiter(this, void 0, void 0, function () {
+            var myReporter;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        myReporter = new CypressTestRailReporter(runner, options);
+                        return [4 /*yield*/, myReporter.setupListeners()];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/, myReporter];
+                }
+            });
+        });
+    };
+    CypressTestRailReporter.prototype.setupListeners = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(this.reporterOptions.planId && this.reporterOptions.planId.toString().length)) return [3 /*break*/, 6];
+                        return [4 /*yield*/, this.runner.on('start', function () { return __awaiter(_this, void 0, void 0, function () {
                                 var _a;
                                 return __generator(this, function (_b) {
                                     switch (_b.label) {
@@ -146,77 +161,76 @@ var CypressTestRailReporter = /** @class */ (function (_super) {
                                     }
                                 });
                             }); })];
-                        case 1:
-                            _a.sent();
-                            return [4 /*yield*/, runner.on('pass', function (test) { return __awaiter(_this, void 0, void 0, function () {
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0: return [4 /*yield*/, this.submitResults(testrail_interface_1.Status.Passed, test, "Execution time: " + test.duration + "ms")];
-                                            case 1:
-                                                _a.sent();
-                                                return [2 /*return*/];
-                                        }
-                                    });
-                                }); })];
-                        case 2:
-                            _a.sent();
-                            return [4 /*yield*/, runner.on('fail', function (test, err) { return __awaiter(_this, void 0, void 0, function () {
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0: return [4 /*yield*/, this.submitResults(testrail_interface_1.Status.Failed, test, "" + err.message)];
-                                            case 1:
-                                                _a.sent();
-                                                return [2 /*return*/];
-                                        }
-                                    });
-                                }); })];
-                        case 3:
-                            _a.sent();
-                            return [4 /*yield*/, runner.on('retry', function (test) { return __awaiter(_this, void 0, void 0, function () {
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0: return [4 /*yield*/, this.submitResults(testrail_interface_1.Status.Retest, test, 'Cypress retry logic has been triggered!')];
-                                            case 1:
-                                                _a.sent();
-                                                return [2 /*return*/];
-                                        }
-                                    });
-                                }); })];
-                        case 4:
-                            _a.sent();
-                            return [4 /*yield*/, runner.on('end', function () { return __awaiter(_this, void 0, void 0, function () {
-                                    return __generator(this, function (_a) {
-                                        switch (_a.label) {
-                                            case 0:
-                                                /**
-                                                 * Notify about the results at the end of execution
-                                                 */
-                                                testrail_cache_1.TestRailCache.purge();
-                                                if (this.results.length == 0) {
-                                                    console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
-                                                }
-                                                else {
-                                                    // var path = `runs/view/${this.runId}`;
-                                                    // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
-                                                }
-                                                console.log(" - Starting last call to this.testRailapi.getPlan");
-                                                return [4 /*yield*/, this.testRailApi.getPlan(this.reporterOptions.planId)];
-                                            case 1:
-                                                _a.sent();
-                                                console.log(" - Finished last call to this.testRailapi.getPlan");
-                                                return [2 /*return*/];
-                                        }
-                                    });
-                                }); })];
-                        case 5:
-                            _a.sent();
-                            return [2 /*return*/];
-                    }
-                });
-            }); });
-        }
-        return _this;
-    }
+                    case 1:
+                        _a.sent();
+                        return [4 /*yield*/, this.runner.on('pass', function (test) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, this.submitResults(testrail_interface_1.Status.Passed, test, "Execution time: " + test.duration + "ms")];
+                                        case 1:
+                                            _a.sent();
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); })];
+                    case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this.runner.on('fail', function (test, err) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, this.submitResults(testrail_interface_1.Status.Failed, test, "" + err.message)];
+                                        case 1:
+                                            _a.sent();
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); })];
+                    case 3:
+                        _a.sent();
+                        return [4 /*yield*/, this.runner.on('retry', function (test) { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0: return [4 /*yield*/, this.submitResults(testrail_interface_1.Status.Retest, test, 'Cypress retry logic has been triggered!')];
+                                        case 1:
+                                            _a.sent();
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); })];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, this.runner.on('end', function () { return __awaiter(_this, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            /**
+                                             * Notify about the results at the end of execution
+                                             */
+                                            testrail_cache_1.TestRailCache.purge();
+                                            if (this.results.length == 0) {
+                                                console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+                                            }
+                                            else {
+                                                // var path = `runs/view/${this.runId}`;
+                                                // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
+                                            }
+                                            console.log(" - Starting last call to this.testRailapi.getPlan");
+                                            return [4 /*yield*/, this.testRailApi.getPlan(this.reporterOptions.planId)];
+                                        case 1:
+                                            _a.sent();
+                                            console.log(" - Finished last call to this.testRailapi.getPlan");
+                                            return [2 /*return*/];
+                                    }
+                                });
+                            }); })];
+                    case 5:
+                        _a.sent();
+                        _a.label = 6;
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
     CypressTestRailReporter.prototype.getRunFromPlan = function (suiteId) {
         var caseRunId;
         for (var _i = 0, _a = Object.entries(this.plan.entries); _i < _a.length; _i++) {

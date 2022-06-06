@@ -21,7 +21,7 @@ export class CypressTestRailReporter extends reporters.Spec {
   private cliArguments: any;
 
   constructor(runner: any, options: any) {
-    super(runner,{asyncOnly: true});
+    super(runner);
 
     this.reporterOptions = options.reporterOptions;
 
@@ -80,53 +80,62 @@ export class CypressTestRailReporter extends reporters.Spec {
     //   this.suiteId = this.cliArguments.testRailSuiteId
     // }
 
+
+  }
+
+  public static async initializer(runner: any, options: any) {
+    const myReporter = new CypressTestRailReporter(runner, options);
+    await myReporter.setupListeners();
+    return myReporter;
+  }
+
+  public async setupListeners() {
     /**
      * If no planId has been passed then the
      * runner will not be triggered
      */
-    if (this.reporterOptions.planId && this.reporterOptions.planId.toString().length) {
-      (async () => {
-        await runner.on('start', async () => {
-          this.suiteId = false;
-          TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
+     if (this.reporterOptions.planId && this.reporterOptions.planId.toString().length) {
+      
+      await this.runner.on('start', async () => {
+        this.suiteId = false;
+        TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
 
-          if( !this.plan || (this.plan && !this.plan.entries.length) ){
-            console.log(` - Making the api call to get the plan...`);
-            this.plan = await this.testRailApi.getPlan(this.reporterOptions.planId)
-          }  else {
-            // use the cached TestRail Plan
-            console.log(` - Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
-          }
-          console.log(` - Number of suites in the plan: ${this.plan.entries.length}`);
-        });
+        if( !this.plan || (this.plan && !this.plan.entries.length) ){
+          console.log(` - Making the api call to get the plan...`);
+          this.plan = await this.testRailApi.getPlan(this.reporterOptions.planId)
+        }  else {
+          // use the cached TestRail Plan
+          console.log(` - Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
+        }
+        console.log(` - Number of suites in the plan: ${this.plan.entries.length}`);
+      });
 
-        await runner.on('pass', async test => {
-          await this.submitResults(Status.Passed, test, `Execution time: ${test.duration}ms`);
-        });
+      await this.runner.on('pass', async test => {
+        await this.submitResults(Status.Passed, test, `Execution time: ${test.duration}ms`);
+      });
 
-        await runner.on('fail', async (test, err) => {
-          await this.submitResults(Status.Failed, test, `${err.message}`);
-        });
+      await this.runner.on('fail', async (test, err) => {
+        await this.submitResults(Status.Failed, test, `${err.message}`);
+      });
 
-        await runner.on('retry', async test => {
-          await this.submitResults(Status.Retest, test, 'Cypress retry logic has been triggered!');
-        });
+      await this.runner.on('retry', async test => {
+        await this.submitResults(Status.Retest, test, 'Cypress retry logic has been triggered!');
+      });
 
-        await runner.on('end', async () => {
-          /**
-           * Notify about the results at the end of execution
-           */
-          TestRailCache.purge();
-          if (this.results.length == 0) {
-            console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
-          } else {
-            // var path = `runs/view/${this.runId}`;
-            // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
-          }
-          console.log(` - Starting last call to this.testRailapi.getPlan`);
-          await this.testRailApi.getPlan(this.reporterOptions.planId);
-          console.log(` - Finished last call to this.testRailapi.getPlan`);
-        });
+      await this.runner.on('end', async () => {
+        /**
+         * Notify about the results at the end of execution
+         */
+        TestRailCache.purge();
+        if (this.results.length == 0) {
+          console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+        } else {
+          // var path = `runs/view/${this.runId}`;
+          // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
+        }
+        console.log(` - Starting last call to this.testRailapi.getPlan`);
+        await this.testRailApi.getPlan(this.reporterOptions.planId);
+        console.log(` - Finished last call to this.testRailapi.getPlan`);
       });
     }
   }

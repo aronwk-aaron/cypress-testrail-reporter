@@ -1,8 +1,8 @@
 import { reporters } from 'mocha';
 import * as moment from 'moment';
 import { TestRail } from './testrail';
-import { titleToCaseIds } from './shared';
-import { Status, TestRailResult } from './testrail.interface';
+import { casesToCaseIds } from './shared';
+import { Status, TestRailResult, TestRailPlan, TestRailEntry, TestRailRun } from './testrail.interface';
 import { TestRailValidation } from './testrail.validation';
 import { TestRailLogger } from './testrail.logger';
 import { TestRailCache } from './testrail.cache';
@@ -14,9 +14,11 @@ export class CypressTestRailReporter extends reporters.Spec {
   private testRailApi: TestRail;
   private testRailValidation: TestRailValidation;
   private runId: number;
+  private plan: TestRailPlan;
   private reporterOptions: any;
   private suiteId: any = [];
   private serverTestCaseIds: any = [];
+  private cliArguments: any;
 
   constructor(runner: any, options: any) {
     super(runner);
@@ -38,9 +40,26 @@ export class CypressTestRailReporter extends reporters.Spec {
     if (process.env.CYPRESS_TESTRAIL_REPORTER_GROUPID) {
       this.reporterOptions.groupId = process.env.CYPRESS_TESTRAIL_REPORTER_GROUPID;
     }
+    
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_PLANID) {
+      this.reporterOptions.planId = process.env.CYPRESS_TESTRAIL_REPORTER_PLANID;
+    }
 
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE) {
+      this.reporterOptions.closeRun = process.env.CYPRESS_TESTRAIL_REPORTER_CLOSE;
+    }
+
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_RUNCONFIG) {
+      this.reporterOptions.runConfig = process.env.CYPRESS_TESTRAIL_REPORTER_RUNCONFIG;
+    }
+
+    if (process.env.CYPRESS_TESTRAIL_REPORTER_SUITEID) {
+      this.suiteId = process.env.CYPRESS_TESTRAIL_REPORTER_SUITEID;
+    }
+    
     this.testRailApi = new TestRail(this.reporterOptions);
     this.testRailValidation = new TestRailValidation(this.reporterOptions);
+
 
     /**
      * This will validate reporter options defined in cypress.json file
@@ -56,95 +75,84 @@ export class CypressTestRailReporter extends reporters.Spec {
      * if we are passing suiteId as a part of runtime env variables we assign that value to variable
      * usually we use this way for multi suite projects
      */
-    const cliArguments = this.testRailValidation.validateCLIArguments();
-    if (cliArguments && cliArguments.length) {
-      this.suiteId = cliArguments
-    }
+    // this.cliArguments = this.testRailValidation.parseCLIArguments();
+    // if (this.cliArguments.testRailSuiteId && this.cliArguments.length) {
+    //   this.suiteId = this.cliArguments.testRailSuiteId
+    // }
 
+
+  }
+
+  public static async initializer(runner: any, options: any) {
+    const myReporter = new CypressTestRailReporter(runner, options);
+    await myReporter.setupListeners();
+    return myReporter;
+  }
+
+  public async setupListeners() {
     /**
-     * If no suiteId has been passed with previous two methods
+     * If no planId has been passed then the
      * runner will not be triggered
      */
-    if (this.suiteId && this.suiteId.toString().length) {
-      runner.on('start', () => {
-        this.serverTestCaseIds = this.testRailApi.getCases(this.suiteId);
-        /**
-        * runCounter is used to count how many spec files we have during one run
-        * in order to wait for close test run function
-        */
-        TestRailCache.store('runCounter', runCounter);
-        /**
-        * creates a new TestRail Run
-        * unless a cached value already exists for an existing TestRail Run in
-        * which case that will be used and no new one created.
-        */
-        if (!TestRailCache.retrieve('runId')) {
-            if (this.reporterOptions.suiteId) {
-              TestRailLogger.log(`Following suiteId has been set in cypress.json file: ${this.suiteId}`);
-            }
-            const executionDateTime = moment().format('MMM Do YYYY, HH:mm (Z)');
-            const name = `${this.reporterOptions.runName || 'Automated test run'} ${executionDateTime}`;
-            if (this.reporterOptions.disableDescription) {
-              var description = '';
-            } else {
-              if (process.env.CYPRESS_CI_JOB_URL) {
-                var description = process.env.CYPRESS_CI_JOB_URL;
-              } else {
-                var description = 'For the Cypress run visit https://dashboard.cypress.io/#/projects/runs';
-              }
-            }
-            TestRailLogger.log(`Creating TestRail Run with name: ${name}`);
-            this.testRailApi.createRun(name, description, this.suiteId);
-        } else {
-            // use the cached TestRail Run ID
-            this.runId = TestRailCache.retrieve('runId');
-            TestRailLogger.log(`Using existing TestRail Run with ID: '${this.runId}'`);
+     if (this.reporterOptions.planId && this.reporterOptions.planId.toString().length) {
+      
+      await this.runner.on('start', async () => {
+        this.suiteId = false;
+        TestRailLogger.log(`Following planID has been set: ${this.reporterOptions.planId}`);
+
+        if( !this.plan || (this.plan && !this.plan.entries.length) ){
+          console.log(` - Making the api call to get the plan...`);
+          this.plan = await this.testRailApi.getPlan(this.reporterOptions.planId)
+        }  else {
+          // use the cached TestRail Plan
+          console.log(` - Using existing TestRail Plan with ID: '${this.reporterOptions.planId}'`);   
         }
+        console.log(` - Number of suites in the plan: ${this.plan.entries.length}`);
       });
 
-      runner.on('pass', test => {
-        this.submitResults(Status.Passed, test, `Execution time: ${test.duration}ms`);
+      await this.runner.on('pass', async test => {
+        await this.submitResults(Status.Passed, test, `Execution time: ${test.duration}ms`);
       });
 
-      runner.on('fail', (test, err) => {
-        this.submitResults(Status.Failed, test, `${err.message}`);
+      await this.runner.on('fail', async (test, err) => {
+        await this.submitResults(Status.Failed, test, `${err.message}`);
       });
 
-      runner.on('retry', test => {
-        this.submitResults(Status.Retest, test, 'Cypress retry logic has been triggered!');
+      await this.runner.on('retry', async test => {
+        await this.submitResults(Status.Retest, test, 'Cypress retry logic has been triggered!');
       });
 
-      runner.on('end', () => {
-        /**
-         * When we reach final number of spec files 
-         * we should close test run at the end
-         */
-        var numSpecFiles = this.testRailValidation.countTestSpecFiles();
-        var counter = TestRailCache.retrieve('runCounter');
-        // load runId before purging testrail-cache.txt
-        this.runId = TestRailCache.retrieve('runId');
-
-        if (numSpecFiles.length > counter) {
-          runCounter++
-        } else {
-          this.testRailApi.closeRun();
-          /**
-           * Remove testrail-cache.txt file at the end of execution
-           */
-          TestRailCache.purge();
-        }
-
+      await this.runner.on('end', async () => {
         /**
          * Notify about the results at the end of execution
          */
+        TestRailCache.purge();
         if (this.results.length == 0) {
-          TestRailLogger.warn('No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
+          console.warn(' - [TestRail] No testcases were matched with TestRail. Ensure that your tests are declared correctly and titles contain matches to format of Cxxxx');
         } else {
-          var path = `runs/view/${this.runId}`;
-          TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
+          // var path = `runs/view/${this.runId}`;
+          // TestRailLogger.log(`Results are published to ${chalk.magenta(`${this.reporterOptions.host}/index.php?/${path}`)}`);
         }
+        console.log(` - Starting last call to this.testRailapi.getPlan`);
+        await this.testRailApi.getPlan(this.reporterOptions.planId);
+        console.log(` - Finished last call to this.testRailapi.getPlan`);
       });
     }
+  }
+
+  public getRunFromPlan (suiteId: number) {
+    let caseRunId: number
+    for (let [x, entry] of Object.entries(this.plan.entries)) {
+      if(entry.suite_id == suiteId) {
+        for (let [y, testRun] of Object.entries(entry.runs)) {
+          if(testRun.config.toLowerCase().includes(this.reporterOptions.runConfig.toLowerCase())) {
+            caseRunId = testRun.id;
+            return caseRunId;
+          }
+        }
+      }
+    }
+    return caseRunId;
   }
 
   /**
@@ -153,15 +161,13 @@ export class CypressTestRailReporter extends reporters.Spec {
    * to upload failed screenshot for easier debugging in TestRail
    * Note: Uploading of screenshot is configurable option
    */
-  public submitResults (status, test, comment) {
-    let caseIds = titleToCaseIds(test.title)
-    const invalidCaseIds = caseIds.filter(caseId => !this.serverTestCaseIds.includes(caseId));
-    caseIds = caseIds.filter(caseId => this.serverTestCaseIds.includes(caseId))
-    if (invalidCaseIds.length > 0)
-      TestRailLogger.log(`The following test IDs were found in Cypress tests, but not found in Testrail: ${invalidCaseIds}`)
-
+  public async submitResults (status, test, comment) {
+    if (!test._testConfig.cases){
+      return;
+    }
+    let caseIds = casesToCaseIds(test._testConfig.cases)
     if (caseIds.length) {
-      const caseResults = caseIds.map(caseId => {
+      const caseResults: TestRailResult[] = caseIds.map(caseId => {
         return {
           case_id: caseId,
           status_id: status,
@@ -169,15 +175,18 @@ export class CypressTestRailReporter extends reporters.Spec {
         };
       });
       this.results.push(...caseResults);
-      const publishedResults = this.testRailApi.publishResults(caseResults)
-      if (
-        publishedResults !== undefined &&
-        this.reporterOptions.allowFailedScreenshotUpload === true &&
-        (status === Status.Failed || status === Status.Retest)
-      ) {
-        publishedResults.forEach((result) => {
-          this.testRailApi.uploadScreenshots(caseIds[0], result.id);
-        })
+      let publishedResults: any
+      for( let [x,eachCase] of Object.entries(caseResults)) {
+        let suiteId = await this.testRailApi.getSuite(eachCase.case_id)
+        let caseRunId: number = await this.getRunFromPlan(suiteId)
+        if(caseRunId == undefined) {
+          console.log(' - ', chalk.magenta.underline.bold('[TestRail]'), ` No runs for config: ${this.reporterOptions.runConfig.toLowerCase()}`);
+          continue;
+        }
+        publishedResults = await this.testRailApi.publishResult(eachCase, caseRunId)
+        if(publishedResults.status == 200) {
+          console.log(' - ', chalk.magenta.underline.bold('[TestRail]'), 'result published');
+        }
       }
     }
   }

@@ -3,7 +3,9 @@ export interface TestRailOptions {
   username: string;
   password: string;
   projectId: number;
-  suiteId: number;
+  suiteId?: number;
+  planId?: number;
+  config?: string;
   assignedToId?: number;
   includeAllInTestRun?: boolean;
   groupId?: number;
@@ -47,4 +49,28 @@ export interface TestRailCase {
   custom_steps_separated?: string;
   custom_mission?: string;
   custom_goals?: string;
+}
+
+export interface TestRailRun {
+  id: number,
+  suite_id: number,
+  name: string,
+  description: string,
+  config: string
+}
+
+export interface TestRailEntry {
+  id: number,
+  suite_id: number,
+  name: string,
+  description: string,
+  runs: TestRailRun[]
+}
+
+export interface TestRailPlan {
+  id: number,
+  name: string,
+  description: string,
+  url: string,
+  entries: TestRailEntry[]
 }
